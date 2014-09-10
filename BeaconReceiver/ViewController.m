@@ -23,8 +23,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    defaults = [NSUserDefaults standardUserDefaults];
     
+    // Keeps track of the username between app sessions
+    defaults = [NSUserDefaults standardUserDefaults];
     self.nameLabel.delegate = self;
     self.nameLabel.text = [defaults objectForKey:@"UserName"];
 
@@ -38,19 +39,21 @@
 
     self.statusLabel.text = @"Initializing...";
     
+    // Makes sure monitoring is available on the device
     if (![CLLocationManager isMonitoringAvailableForClass:[CLBeaconRegion class]]) {
         
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Device must support monitoring." message:nil delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Please enable monitoring." message:nil delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil];
         [alert show];
         return;
     }
     
-    // For testing purposes only, take out in final app
+    // For testing ranging
+    // In the final app we turn on ranging only after entering the region to save battery
     // [self.locationManager startRangingBeaconsInRegion:self.myBeaconRegion];
     // [self userName:self.nameLabel.text entry:YES];
 }
 
-// When the return key gets pressed on the keyboard
+// Hides the keyboard when the return key is pressed and updates the stored username
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
     [defaults setObject:self.nameLabel.text forKey:@"UserName"]; // for caching between sessions
@@ -60,11 +63,13 @@
     return YES;
 }
 
+// Returns the number of visible beacons for the beacon table
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     return [beaconArray count];
 }
 
+// Updates the visible beacon table data
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *identifier = @"TableItem";
@@ -90,6 +95,7 @@
     // Dispose of any resources that can be recreated.
 }
 
+// Called when the user enters/exits a region, sends a corresponding response to the Roll Call server
 -(void)userName:(NSString*)name entry:(Boolean)didEnter
 {
     NSString *nodeString = @"http://helloworld-20553.onmodulus.net/";
@@ -117,12 +123,12 @@
 
 }
 
+// Called when the target region is entered
 - (void)locationManager:(CLLocationManager*)manager didEnterRegion:(CLRegion *)region
 {
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     notification.alertBody = @"Entered region!";
     [[UIApplication sharedApplication] presentLocalNotificationNow:notification];
-    // We entered a region, now start looking for our target beacons!
     
     self.statusLabel.text = @"Finding beacons.";
     [self.locationManager startRangingBeaconsInRegion:self.myBeaconRegion];
@@ -130,16 +136,16 @@
 }
 
 
+// Called when the app starts monitoring the target region
 - (void)locationManager:(CLLocationManager*)manager didStartMonitoringForRegion:(CLRegion *)region
 {
     self.statusLabel.text = @"Looking for region.";
     
 }
 
-
+// Called when the target region is exited
 -(void)locationManager:(CLLocationManager*)manager didExitRegion:(CLRegion *)region
 {
-    // Exited the region
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     notification.alertBody = @"Exited region.";
     [[UIApplication sharedApplication] presentLocalNotificationNow:notification];
@@ -147,12 +153,11 @@
     [self userName:self.nameLabel.text entry:NO];
 }
  
-
+// Called when beacons are ranged
 -(void)locationManager:(CLLocationManager*)manager
        didRangeBeacons:(NSArray*)beacons
               inRegion:(CLBeaconRegion*)region
 {
-    // Beacon found!
     if ([beacons count] > 0)
     {
         self.statusLabel.text = [NSString stringWithFormat:@"Beacons Visible: %d", [beacons count]];
