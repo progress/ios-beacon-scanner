@@ -5,3 +5,5 @@ This app monitors for a beacon region with a specific UUID. Once it enters the b
 [My First Beacon App](http://dcinglis.wordpress.com/2014/06/27/my-first-beacon-app/)
 
 [The Roll Call App](http://dcinglis.wordpress.com/2014/07/15/the-roll-call-app-integrating-beacons-with-node-js-and-mongodb/)
+
+[Provisioning an iOS App](http://dcinglis.wordpress.com/2014/08/21/provisioning-an-ios-app-for-ad-hoc-testing/)
