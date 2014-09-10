@@ -2,44 +2,62 @@
 //  ViewController.m
 //  BeaconReceiver
 //
-//  David Inglis
+//  Copyright 2014 © Progress Software
+//  Contributor: David Inglis
 
 #import "ViewController.h"
 
 @interface ViewController ()
+
+
 
 @end
 
 @implementation ViewController
 {
     NSArray *beaconArray; // The array of visible beacons
+    NSUserDefaults *defaults;
+    
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    defaults = [NSUserDefaults standardUserDefaults];
     
+    self.nameLabel.delegate = self;
+    self.nameLabel.text = [defaults objectForKey:@"UserName"];
+
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate = self;
     
-    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:@"11111111-2222-3333-4444-555555555555"];
+    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:@"08D4A950-80F0-4D42-A14B-D53E063516E6"];
     
     self.myBeaconRegion = [[CLBeaconRegion alloc] initWithProximityUUID:uuid identifier:@"gimbal"];
     [self.locationManager startMonitoringForRegion:self.myBeaconRegion];
 
     self.statusLabel.text = @"Initializing...";
     
-    
     if (![CLLocationManager isMonitoringAvailableForClass:[CLBeaconRegion class]]) {
         
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Monitoring not available" message:nil delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Device must support monitoring." message:nil delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil];
         [alert show];
         return;
     }
     
     // For testing purposes only, take out in final app
-   [self.locationManager startRangingBeaconsInRegion:self.myBeaconRegion];
-     
+    // [self.locationManager startRangingBeaconsInRegion:self.myBeaconRegion];
+    // [self userName:self.nameLabel.text entry:YES];
+}
+
+// When the return key gets pressed on the keyboard
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [defaults setObject:self.nameLabel.text forKey:@"UserName"]; // for caching between sessions
+    [defaults synchronize];
+    [textField resignFirstResponder]; // closes the keyboard
+    
+    return YES;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -72,6 +90,33 @@
     // Dispose of any resources that can be recreated.
 }
 
+-(void)userName:(NSString*)name entry:(Boolean)didEnter
+{
+    NSString *nodeString = @"http://helloworld-20553.onmodulus.net/";
+    NSURL *nodeURL = [NSURL URLWithString: nodeString];
+    NSURLSession *session = [NSURLSession sharedSession];
+    
+    NSDate *currentTime = [NSDate date];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm.ss"];
+    NSString *resultString = [dateFormatter stringFromDate:currentTime];
+    NSString *finalString;
+    finalString = [NSString stringWithFormat:@"%@,%hhu,%@", resultString, didEnter, self.nameLabel.text];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:nodeURL];
+    [request setHTTPMethod: @"POST"];
+    NSLog(@"test");
+    NSLog(self.nameLabel.text);
+    NSLog(finalString);
+    [request setHTTPBody: [finalString dataUsingEncoding:NSUTF8StringEncoding]];
+    NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
+    {
+        NSLog(@"Sent request.");
+    }];
+    [postDataTask resume];
+    NSLog(@"past request in code.");
+
+}
+
 - (void)locationManager:(CLLocationManager*)manager didEnterRegion:(CLRegion *)region
 {
     UILocalNotification *notification = [[UILocalNotification alloc] init];
@@ -81,6 +126,7 @@
     
     self.statusLabel.text = @"Finding beacons.";
     [self.locationManager startRangingBeaconsInRegion:self.myBeaconRegion];
+    [self userName:self.nameLabel.text entry:YES];
 }
 
 
@@ -98,6 +144,7 @@
     notification.alertBody = @"Exited region.";
     [[UIApplication sharedApplication] presentLocalNotificationNow:notification];
     [self.locationManager stopRangingBeaconsInRegion:self.myBeaconRegion];
+    [self userName:self.nameLabel.text entry:NO];
 }
  
 
@@ -116,6 +163,9 @@
     {
         self.statusLabel.text = @"No beacons yet...";
     }
+}
+
+- (IBAction)dEOE:(id)sender {
 }
 
 @end

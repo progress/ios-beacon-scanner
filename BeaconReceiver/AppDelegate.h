@@ -2,7 +2,8 @@
 //  AppDelegate.h
 //  BeaconReceiver
 //
-//  David Inglis
+//  Copyright 2014 © Progress Software
+//  Contributor: David Inglis
 
 #import <UIKit/UIKit.h>
 

@@ -2,9 +2,8 @@
 //  BeaconReceiverTests.m
 //  BeaconReceiverTests
 //
-//  Created by Christopher Ching on 2013-11-28.
-//  Copyright (c) 2013 AppCoda. All rights reserved.
-//
+//  Copyright 2014 © Progress Software
+//  Contributor: David Inglis
 
 #import <XCTest/XCTest.h>
 

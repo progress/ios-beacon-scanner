@@ -2,7 +2,8 @@
 //  AppDelegate.m
 //  BeaconReceiver
 //
-//  David Inglis
+//  Copyright 2014 © Progress Software
+//  Contributor: David Inglis
 
 #import "AppDelegate.h"
 
